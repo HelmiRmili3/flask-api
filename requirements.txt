@@ -1,0 +1,8 @@
+fastapi==0.115.0
+uvicorn==0.30.0
+keras-ocr==0.9.3
+opencv-python-headless==4.10.0.84
+easyocr
+python-Levenshtein
+pandas==2.2.2
+tensorflow==2.16.1
