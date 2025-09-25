@@ -1,6 +1,7 @@
 import json
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware  # << add this
 import easyocr
 import pandas as pd
 import tempfile
@@ -11,13 +12,30 @@ import numpy as np
 import os
 import string
 import re
-import Levenshtein  # pip install python-Levenshtein
+import Levenshtein
 from openai import OpenAI
 from dotenv import load_dotenv
+import httpx
 
-load_dotenv()          # reads .env automatically
+load_dotenv()
 
 app = FastAPI(title="Receipt OCR API")
+
+# Allowed origins (local dev + production domain)
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://helmirmili.tn"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # explicitly allow these origins
+    allow_credentials=True,
+    allow_methods=["*"],         # allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],         # allow all headers (important for file uploads)
+)
+
 
 reader = easyocr.Reader(["en", "fr"], gpu=False)
 
@@ -30,8 +48,9 @@ TOTAL_KEYWORDS = [
 ]
 
 client = OpenAI(
-    base_url="https://models.inference.ai.azure.com",
-    api_key=os.getenv("GITHUB_TOKEN")
+    base_url="https://models.inference.ai.azure.com",  # note api_base not base_url
+    api_key=os.getenv("GITHUB_TOKEN"),
+    http_client=httpx.Client()
 )
 SYSTEM_PROMPT = (
     "You receive a raw list of strings. "
